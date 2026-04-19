@@ -1,26 +1,99 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import r2_score, accuracy_score
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.ensemble import RandomForestClassifier
 
-stats2025 = pd.read_csv('./data/stats/stats2025.csv')
-playoffs2025 = pd.read_csv('./data/playoffs/playoffs2025.csv')
+traingingYears = [
+    '2025',
+    '2024',
+    '2023',
+    '2022',
+    '2019',
+    '2018',
+    '2017',
+    '2016',
+    '2015'
+]
 
-# Set up x and y for training
-df = playoffs2025.merge(
-    stats2025.add_prefix('H_'), 
-    left_on='homeTeam', 
-    right_on='H_teamAbbrev', 
-    how='left'
-)
+df = pd.DataFrame()
 
-df = df.merge(
-    stats2025.add_prefix('A_'), 
-    left_on='awayTeam', 
-    right_on='A_teamAbbrev', 
-    how='left'
-)
+for i in traingingYears:
+    stats = pd.read_csv(f'./data/stats/stats{i}.csv')
+    playoffs = pd.read_csv(f'./data/playoffs/playoffs{i}.csv')
 
-df = df.drop(['homeTeam', 'awayTeam', 'H_teamAbbrev', 'A_teamAbbrev'], axis=1)
+    # Set up x and y for training
+    tempDF = playoffs.merge(
+        stats.add_prefix('H_'), 
+        left_on='homeTeam', 
+        right_on='H_teamAbbrev', 
+        how='left'
+    )
+
+    tempDF = tempDF.merge(
+        stats.add_prefix('A_'), 
+        left_on='awayTeam', 
+        right_on='A_teamAbbrev', 
+        how='left'
+    )
+
+    tempDF = tempDF.drop(['homeTeam', 'awayTeam', 'H_teamAbbrev', 'A_teamAbbrev'], axis=1)
+    df = pd.concat([df, tempDF], ignore_index=True)
 
 x = df.drop(['winner', 'games'], axis=1)
 yWinner = df['winner']
 yGames = df['games']
+
+def winnerModel():
+    # Prepare to start training
+    x_train, x_test, y_train, y_test = train_test_split(
+        x,
+        yWinner,
+        test_size=0.2,
+        #random_state=42
+    )
+
+    # Train
+    model = RandomForestClassifier(
+        n_estimators=500,
+        max_depth=5,
+        min_samples_split=2,
+        min_samples_leaf=3,
+        max_leaf_nodes=5,
+        #random_state=42,
+        n_jobs=-1
+    )
+    model.fit(x_train, y_train)
+
+    yPred = model.predict(x_test)
+    accuracy = accuracy_score(y_test, yPred)
+    print(accuracy)
+
+def gamesModel():
+    # Prepare to start training
+    x_train, x_test, y_train, y_test = train_test_split(
+        x,
+        yGames,
+        test_size=0.2,
+        #random_state=42
+    )
+
+    # Train
+    model = RandomForestClassifier(
+        n_estimators=300,
+        max_depth=6,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_leaf_nodes=None,
+        random_state=42,
+        n_jobs=-1
+    )
+    model.fit(x_train, y_train)
+
+    yPred = model.predict(x_test)
+    accuracy = accuracy_score(y_test, yPred)
+    print(accuracy)
+
+winnerModel()
+gamesModel()
