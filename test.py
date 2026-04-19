@@ -4,6 +4,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import r2_score, accuracy_score
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.ensemble import RandomForestClassifier
+import joblib
 
 traingingYears = [
     '2025',
@@ -45,13 +46,13 @@ x = df.drop(['winner', 'games'], axis=1)
 yWinner = df['winner']
 yGames = df['games']
 
-def winnerModel():
+def winnerModelTrain():
     # Prepare to start training
     x_train, x_test, y_train, y_test = train_test_split(
         x,
         yWinner,
         test_size=0.2,
-        #random_state=42
+        random_state=42
     )
 
     # Train
@@ -61,7 +62,7 @@ def winnerModel():
         min_samples_split=2,
         min_samples_leaf=3,
         max_leaf_nodes=5,
-        #random_state=42,
+        random_state=42,
         n_jobs=-1
     )
     model.fit(x_train, y_train)
@@ -70,13 +71,27 @@ def winnerModel():
     accuracy = accuracy_score(y_test, yPred)
     print(accuracy)
 
-def gamesModel():
+def winnerModelFinal():
+    model = RandomForestClassifier(
+        n_estimators=500,
+        max_depth=5,
+        min_samples_split=2,
+        min_samples_leaf=3,
+        max_leaf_nodes=5,
+        random_state=42,
+        n_jobs=-1
+    )
+
+    model.fit(x, yWinner)
+    joblib.dump(model, './models/winner_model_1.joblib')
+
+def gamesModelTrain():
     # Prepare to start training
     x_train, x_test, y_train, y_test = train_test_split(
         x,
         yGames,
         test_size=0.2,
-        #random_state=42
+        random_state=42
     )
 
     # Train
@@ -95,5 +110,21 @@ def gamesModel():
     accuracy = accuracy_score(y_test, yPred)
     print(accuracy)
 
-winnerModel()
-gamesModel()
+def gamesModelFinal():
+    model = RandomForestClassifier(
+        n_estimators=300,
+        max_depth=6,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_leaf_nodes=None,
+        random_state=42,
+        n_jobs=-1
+    )
+
+    model.fit(x, yGames)
+    joblib.dump(model, './models/games_model_1.joblib')
+
+winnerModelTrain()
+gamesModelTrain()
+winnerModelFinal()
+gamesModelFinal()
