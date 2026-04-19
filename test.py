@@ -124,7 +124,39 @@ def gamesModelFinal():
     model.fit(x, yGames)
     joblib.dump(model, './models/games_model_1.joblib')
 
+def makePrediction():
+    # Load models
+    winnerModel = joblib.load('./models/winner_model_1.joblib')
+    gamesModel = joblib.load('./models/games_model_1.joblib')
+
+    print('Enter home team')
+    homeTeam = input()
+    print('Enter away team')
+    awayTeam = input()
+
+    # Get data
+    stats = pd.read_csv('./data/stats/stats2026.csv')
+
+    x = pd.concat(
+        [
+            stats[stats['teamAbbrev'] == homeTeam].add_prefix('H_').reset_index(drop=True), 
+            stats[stats['teamAbbrev'] == awayTeam].add_prefix('A_').reset_index(drop=True)
+        ], 
+        axis=1
+    )
+
+    x = x.drop(['H_teamAbbrev', 'A_teamAbbrev'], axis=1)
+
+    # Make prediction
+    winnerPred = winnerModel.predict(x)
+    gamesPred = gamesModel.predict(x)
+
+    print(winnerPred)
+    print(gamesPred)
+
 winnerModelTrain()
 gamesModelTrain()
 winnerModelFinal()
 gamesModelFinal()
+
+makePrediction()
