@@ -143,19 +143,24 @@ for i in seasonEndDates:
 
     for j in data['rounds']:
         for k in j['series']:
+            if int(k['topSeed']['wins']) == 4:
+                winner = 1
+            else:
+                winner = 0
+
             dataRows.append([
                 k['topSeed']['abbrev'],
-                k['topSeed']['wins'],
                 k['bottomSeed']['abbrev'],
-                k['bottomSeed']['wins']
+                winner,
+                (int(k['topSeed']['wins']) + int(k['bottomSeed']['wins']))
             ])
     
     # Write to CSV
     df = pd.DataFrame(dataRows, columns=[
         'homeTeam',
-        'homeTeamWins',
         'awayTeam',
-        'awayTeamWins'
+        'winner',
+        'games'
     ])
 
     df.to_csv(f'./data/playoffs/playoffs{i[:4]}.csv', index=False)
