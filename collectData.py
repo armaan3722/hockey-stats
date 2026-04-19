@@ -128,4 +128,34 @@ for j in seasonEndDates:
         'roadWins'
     ])
 
-    df.to_csv(f'data{j[0]}{j[1]}{j[2]}{j[3]}.csv', index=False)
+    df.to_csv(f'./data/stats/stats{j[:4]}.csv', index=False)
+
+for i in seasonEndDates:
+    # Set up url
+    url = f"https://api-web.nhle.com/v1/playoff-series/carousel/{int(i[:4])-1}{i[:4]}"
+
+    # Read API
+    response = requests.get(url)
+    data = response.json()
+
+    # Get data
+    dataRows = []
+
+    for j in data['rounds']:
+        for k in j['series']:
+            dataRows.append([
+                k['topSeed']['abbrev'],
+                k['topSeed']['wins'],
+                k['bottomSeed']['abbrev'],
+                k['bottomSeed']['wins']
+            ])
+    
+    # Write to CSV
+    df = pd.DataFrame(dataRows, columns=[
+        'homeTeam',
+        'homeTeamWins',
+        'awayTeam',
+        'awayTeamWins'
+    ])
+
+    df.to_csv(f'./data/playoffs/playoffs{i[:4]}.csv', index=False)
