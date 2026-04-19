@@ -46,6 +46,9 @@ x = df.drop(['winner', 'games'], axis=1)
 yWinner = df['winner']
 yGames = df['games']
 
+poly = PolynomialFeatures()
+polyX = poly.fit_transform(x)
+
 def winnerModelTrain():
     # Prepare to start training
     x_train, x_test, y_train, y_test = train_test_split(
@@ -88,7 +91,7 @@ def winnerModelFinal():
 def gamesModelTrain():
     # Prepare to start training
     x_train, x_test, y_train, y_test = train_test_split(
-        x,
+        polyX,
         yGames,
         test_size=0.2,
         random_state=42
@@ -159,4 +162,7 @@ gamesModelTrain()
 winnerModelFinal()
 gamesModelFinal()
 
-makePrediction()
+i = 0
+while i < 15:
+    makePrediction()
+    i += 1
